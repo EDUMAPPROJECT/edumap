@@ -16,6 +16,7 @@ interface CompactAcademyListProps {
   academies: Academy[];
   learningStyle: string | null;
   loading: boolean;
+  title?: string;
 }
 
 const styleTagMap: Record<string, string[]> = {
@@ -32,10 +33,10 @@ const styleNameMap: Record<string, string> = {
   mentored: "밀착관리형",
 };
 
-const CompactAcademyList = ({ academies, learningStyle, loading }: CompactAcademyListProps) => {
+const CompactAcademyList = ({ academies, learningStyle, loading, title }: CompactAcademyListProps) => {
   const navigate = useNavigate();
   const styleTags = learningStyle ? styleTagMap[learningStyle] || [] : [];
-  const styleName = learningStyle ? styleNameMap[learningStyle] || "맞춤" : "추천";
+  const displayTitle = title || (learningStyle ? "내 성향 맞춤 추천 학원" : "추천 학원");
 
   const calculateMatchScore = (tags: string[] | null): number => {
     if (!tags || !learningStyle) return 85;
@@ -79,9 +80,7 @@ const CompactAcademyList = ({ academies, learningStyle, loading }: CompactAcadem
     <section className="mb-8 px-4">
       <div className="flex items-center gap-2 mb-4">
         <Sparkles className="w-5 h-5 text-primary" />
-        <h3 className="font-bold text-foreground">
-          {learningStyle ? `${styleName} 맞춤 추천 학원` : "추천 학원"}
-        </h3>
+        <h3 className="font-bold text-foreground">{displayTitle}</h3>
       </div>
       
       <div className="space-y-3">

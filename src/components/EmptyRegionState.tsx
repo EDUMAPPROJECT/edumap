@@ -6,7 +6,7 @@ interface EmptyRegionStateProps {
   onRegionChange: (region: string) => void;
 }
 
-const suggestedRegions = ["대치동", "목동", "분당"];
+const suggestedRegions = ["동탄4동", "동탄5동", "동탄1동", "동탄6동"];
 
 const EmptyRegionState = ({ region, onRegionChange }: EmptyRegionStateProps) => {
   const otherRegions = suggestedRegions.filter(r => r !== region);

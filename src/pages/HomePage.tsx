@@ -9,6 +9,8 @@ import RegionSelector from "@/components/RegionSelector";
 import SeminarCarousel from "@/components/SeminarCarousel";
 import CompactAcademyList from "@/components/CompactAcademyList";
 import EmptyRegionState from "@/components/EmptyRegionState";
+import AcademyNewsFeed from "@/components/AcademyNewsFeed";
+import PostDetailDialog from "@/components/PostDetailDialog";
 
 interface Seminar {
   id: string;
@@ -29,15 +31,34 @@ interface Academy {
   address: string | null;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  content: string | null;
+  category: string;
+  image_url: string | null;
+  created_at: string;
+  academy: {
+    id: string;
+    name: string;
+    profile_image: string | null;
+  };
+}
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [seminars, setSeminars] = useState<Seminar[]>([]);
   const [academies, setAcademies] = useState<Academy[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loadingSeminars, setLoadingSeminars] = useState(true);
   const [loadingAcademies, setLoadingAcademies] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(true);
   const [learningStyle, setLearningStyle] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [checkingProfile, setCheckingProfile] = useState(true);
-  const [selectedRegion, setSelectedRegion] = useState("대치동");
+  const [selectedRegion, setSelectedRegion] = useState("동탄4동");
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [postDialogOpen, setPostDialogOpen] = useState(false);
 
   const fetchSeminars = useCallback(async (region: string) => {
     try {
@@ -103,6 +124,56 @@ const HomePage = () => {
     }
   }, []);
 
+  const fetchPosts = useCallback(async (region: string) => {
+    try {
+      setLoadingPosts(true);
+
+      const { data, error } = await supabase
+        .from("posts")
+        .select(`
+          id,
+          title,
+          content,
+          category,
+          image_url,
+          created_at,
+          academy:academies (
+            id,
+            name,
+            profile_image,
+            address
+          )
+        `)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      // Filter by region
+      const filtered = (data || []).filter((post: any) => {
+        return post.academy?.address?.includes(region);
+      });
+
+      setPosts(filtered.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        content: p.content,
+        category: p.category,
+        image_url: p.image_url,
+        created_at: p.created_at,
+        academy: {
+          id: p.academy.id,
+          name: p.academy.name,
+          profile_image: p.academy.profile_image,
+        },
+      })));
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setLoadingPosts(false);
+    }
+  }, []);
+
   useEffect(() => {
     const checkUserProfile = async () => {
       try {
@@ -110,12 +181,15 @@ const HomePage = () => {
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("learning_style")
+            .select("learning_style, user_name")
             .eq("id", user.id)
             .maybeSingle();
           
           if (profile?.learning_style) {
             setLearningStyle(profile.learning_style);
+          }
+          if (profile?.user_name) {
+            setUserName(profile.user_name);
           }
         }
       } catch (error) {
@@ -131,14 +205,25 @@ const HomePage = () => {
   useEffect(() => {
     fetchSeminars(selectedRegion);
     fetchAcademies(selectedRegion);
-  }, [selectedRegion, fetchSeminars, fetchAcademies]);
+    fetchPosts(selectedRegion);
+  }, [selectedRegion, fetchSeminars, fetchAcademies, fetchPosts]);
 
   const handleRegionChange = (region: string) => {
     setSelectedRegion(region);
   };
 
+  const handlePostClick = (post: Post) => {
+    setSelectedPost(post);
+    setPostDialogOpen(true);
+  };
+
   const hasNoData = !loadingSeminars && !loadingAcademies && 
                     seminars.length === 0 && academies.length === 0;
+
+  const displayName = userName || "학부모";
+  const recommendationTitle = learningStyle 
+    ? `${displayName}님을 위한 추천 학원`
+    : "지금 동탄에서 가장 인기있는 학원";
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -181,15 +266,30 @@ const HomePage = () => {
               loading={loadingSeminars} 
             />
 
+            {/* Academy News Feed */}
+            <AcademyNewsFeed
+              posts={posts}
+              loading={loadingPosts}
+              onPostClick={handlePostClick}
+            />
+
             {/* Compact Academy List */}
             <CompactAcademyList
               academies={academies}
               learningStyle={learningStyle}
               loading={loadingAcademies}
+              title={recommendationTitle}
             />
           </>
         )}
       </main>
+
+      {/* Post Detail Dialog */}
+      <PostDetailDialog
+        post={selectedPost}
+        open={postDialogOpen}
+        onClose={() => setPostDialogOpen(false)}
+      />
 
       <BottomNavigation />
     </div>
