@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Logo from "@/components/Logo";
@@ -36,6 +36,8 @@ import {
   Heart,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const LocationMap = lazy(() => import("@/components/LocationMap"));
 
 interface Academy {
   id: string;
@@ -335,10 +337,14 @@ const AcademyDetailPage = () => {
               <Card className="shadow-card">
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-foreground mb-3">위치</h3>
-                  <div className="h-32 bg-secondary/50 rounded-lg flex items-center justify-center mb-2">
-                    <MapPin className="w-8 h-8 text-primary" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">{academy.address}</p>
+                  <Suspense fallback={
+                    <div className="w-full h-48 rounded-lg bg-secondary/50 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                    </div>
+                  }>
+                    <LocationMap address={academy.address} name={academy.name} />
+                  </Suspense>
+                  <p className="text-sm text-muted-foreground mt-3">{academy.address}</p>
                 </CardContent>
               </Card>
             )}

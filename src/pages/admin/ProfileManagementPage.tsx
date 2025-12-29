@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminBottomNavigation from "@/components/AdminBottomNavigation";
 import Logo from "@/components/Logo";
+import ImageUpload from "@/components/ImageUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -388,15 +389,10 @@ const ProfileManagementPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {profileImage && (
-                  <div className="w-full h-40 rounded-xl overflow-hidden bg-muted mb-3">
-                    <img src={profileImage} alt="학원" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <Input
-                  placeholder="이미지 URL"
+                <ImageUpload
                   value={profileImage}
-                  onChange={(e) => setProfileImage(e.target.value)}
+                  onChange={setProfileImage}
+                  folder="academies"
                 />
               </CardContent>
             </Card>
@@ -494,8 +490,12 @@ const ProfileManagementPage = () => {
                     <Textarea value={teacherBio} onChange={(e) => setTeacherBio(e.target.value)} rows={3} />
                   </div>
                   <div className="space-y-2">
-                    <Label>프로필 이미지 URL</Label>
-                    <Input value={teacherImage} onChange={(e) => setTeacherImage(e.target.value)} />
+                    <Label>프로필 사진</Label>
+                    <ImageUpload
+                      value={teacherImage}
+                      onChange={setTeacherImage}
+                      folder="teachers"
+                    />
                   </div>
                   <Button className="w-full" onClick={handleSaveTeacher}>
                     저장
