@@ -18,6 +18,7 @@ import AdminHomePage from "./pages/admin/AdminHomePage";
 import ConsultationManagementPage from "./pages/admin/ConsultationManagementPage";
 import ProfileManagementPage from "./pages/admin/ProfileManagementPage";
 import SeminarManagementPage from "./pages/admin/SeminarManagementPage";
+import PostManagementPage from "./pages/admin/PostManagementPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="/admin/consultations" element={<ConsultationManagementPage />} />
             <Route path="/admin/profile" element={<ProfileManagementPage />} />
             <Route path="/admin/seminars" element={<SeminarManagementPage />} />
+            <Route path="/admin/posts" element={<PostManagementPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

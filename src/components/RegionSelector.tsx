@@ -14,13 +14,26 @@ interface RegionSelectorProps {
   onRegionChange: (region: string) => void;
 }
 
-const regions = [
-  { id: "대치동", name: "대치동", description: "강남구" },
-  { id: "목동", name: "목동", description: "양천구" },
-  { id: "중계동", name: "중계동", description: "노원구" },
-  { id: "분당", name: "분당", description: "성남시" },
-  { id: "평촌", name: "평촌", description: "안양시" },
-  { id: "일산", name: "일산", description: "고양시" },
+const regionGroups = [
+  {
+    title: "동탄 1신도시",
+    regions: [
+      { id: "동탄1동", name: "동탄1동", description: "신리천 주변" },
+      { id: "동탄2동", name: "동탄2동", description: "동탄중앙로" },
+      { id: "동탄3동", name: "동탄3동", description: "동탄역 인근" },
+    ],
+  },
+  {
+    title: "동탄 2신도시",
+    regions: [
+      { id: "동탄4동", name: "동탄4동", description: "영천동" },
+      { id: "동탄5동", name: "동탄5동", description: "청계동" },
+      { id: "동탄6동", name: "동탄6동", description: "방교동" },
+      { id: "동탄7동", name: "동탄7동", description: "산척동" },
+      { id: "동탄8동", name: "동탄8동", description: "장지동" },
+      { id: "동탄9동", name: "동탄9동", description: "오산동" },
+    ],
+  },
 ];
 
 const RegionSelector = ({ selectedRegion, onRegionChange }: RegionSelectorProps) => {
@@ -46,35 +59,39 @@ const RegionSelector = ({ selectedRegion, onRegionChange }: RegionSelectorProps)
       </DrawerTrigger>
       <DrawerContent className="bg-card">
         <DrawerHeader className="border-b border-border">
-          <DrawerTitle className="text-center">지역 선택</DrawerTitle>
+          <DrawerTitle className="text-center">동탄 신도시 지역 선택</DrawerTitle>
         </DrawerHeader>
-        <div className="p-4 pb-8 max-h-[60vh] overflow-y-auto">
-          <p className="text-sm text-muted-foreground mb-4">
-            주요 교육 특구를 선택해주세요
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {regions.map((region) => (
-              <button
-                key={region.id}
-                onClick={() => handleSelect(region.id)}
-                className={`
-                  flex items-center justify-between p-4 rounded-xl border-2 transition-all
-                  ${selectedRegion === region.id 
-                    ? "border-primary bg-primary/5" 
-                    : "border-border hover:border-primary/50 hover:bg-accent"
-                  }
-                `}
-              >
-                <div className="text-left">
-                  <p className="font-semibold text-foreground">{region.name}</p>
-                  <p className="text-xs text-muted-foreground">{region.description}</p>
-                </div>
-                {selectedRegion === region.id && (
-                  <Check className="w-5 h-5 text-primary" />
-                )}
-              </button>
-            ))}
-          </div>
+        <div className="p-4 pb-8 max-h-[70vh] overflow-y-auto">
+          {regionGroups.map((group) => (
+            <div key={group.title} className="mb-6">
+              <p className="text-sm font-semibold text-primary mb-3">
+                {group.title}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {group.regions.map((region) => (
+                  <button
+                    key={region.id}
+                    onClick={() => handleSelect(region.id)}
+                    className={`
+                      flex items-center justify-between p-4 rounded-xl border-2 transition-all
+                      ${selectedRegion === region.id 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50 hover:bg-accent"
+                      }
+                    `}
+                  >
+                    <div className="text-left">
+                      <p className="font-semibold text-foreground">{region.name}</p>
+                      <p className="text-xs text-muted-foreground">{region.description}</p>
+                    </div>
+                    {selectedRegion === region.id && (
+                      <Check className="w-5 h-5 text-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </DrawerContent>
     </Drawer>
