@@ -28,6 +28,11 @@ const LocationMap = ({ address, name }: LocationMapProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const position = useMemo<[number, number] | null>(
+    () => coordinates ? [coordinates.lat, coordinates.lng] : null,
+    [coordinates]
+  );
+
   useEffect(() => {
     const geocode = async () => {
       setLoading(true);
@@ -113,16 +118,11 @@ const LocationMap = ({ address, name }: LocationMapProps) => {
     );
   }
 
-  const position = useMemo<[number, number]>(
-    () => [coordinates.lat, coordinates.lng],
-    [coordinates.lat, coordinates.lng]
-  );
-
   return (
     <div className="space-y-3">
       <div className="w-full h-48 rounded-lg overflow-hidden">
         <MapContainer
-          center={position}
+          center={position!}
           zoom={16}
           scrollWheelZoom={false}
           style={{ height: "100%", width: "100%" }}
@@ -131,7 +131,7 @@ const LocationMap = ({ address, name }: LocationMapProps) => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <Marker position={position}>
+          <Marker position={position!}>
             <Popup>
               <span className="text-center">
                 <strong>{name}</strong>
