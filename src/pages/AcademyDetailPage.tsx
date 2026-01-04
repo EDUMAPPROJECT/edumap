@@ -272,7 +272,7 @@ const AcademyDetailPage = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Logo size="sm" />
+          <Logo size="sm" showText={false} />
           <div className="flex-1" />
           <Button
             variant="ghost"

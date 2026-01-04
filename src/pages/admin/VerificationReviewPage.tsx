@@ -18,8 +18,10 @@ import {
   Building2,
   FileText,
   Eye,
-  ExternalLink
+  ExternalLink,
+  Shield
 } from "lucide-react";
+import Logo from "@/components/Logo";
 
 interface BusinessVerification {
   id: string;
