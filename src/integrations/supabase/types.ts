@@ -478,6 +478,42 @@ export type Database = {
           },
         ]
       }
+      manual_schedules: {
+        Row: {
+          color_index: number | null
+          created_at: string
+          day: string
+          end_time: string
+          id: string
+          start_time: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color_index?: number | null
+          created_at?: string
+          day: string
+          end_time: string
+          id?: string
+          start_time: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color_index?: number | null
+          created_at?: string
+          day?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           chat_room_id: string
