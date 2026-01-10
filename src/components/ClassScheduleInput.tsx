@@ -23,20 +23,24 @@ interface ClassScheduleInputProps {
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
-// Generate time options in 15-minute intervals
-const generateTimeOptions = () => {
-  const options: string[] = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 15) {
-      const h = hour.toString().padStart(2, "0");
-      const m = minute.toString().padStart(2, "0");
-      options.push(`${h}:${m}`);
-    }
-  }
-  return options;
+// Generate hour options (0-23)
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
+
+// Generate minute options (0, 15, 30, 45)
+const MINUTE_OPTIONS = ["00", "15", "30", "45"];
+
+// Helper to split time string into hour and minute
+const splitTime = (time: string): { hour: string; minute: string } => {
+  if (!time) return { hour: "", minute: "" };
+  const [hour, minute] = time.split(":");
+  return { hour: hour || "", minute: minute || "" };
 };
 
-const TIME_OPTIONS = generateTimeOptions();
+// Helper to combine hour and minute into time string
+const combineTime = (hour: string, minute: string): string => {
+  if (!hour || !minute) return "";
+  return `${hour}:${minute}`;
+};
 
 // Parse schedule string like "월 18:00~20:00, 수 19:00~21:00" or "월/수/금 18:00~20:00"
 function parseSchedule(schedule: string): ScheduleEntry[] {
@@ -133,77 +137,116 @@ export default function ClassScheduleInput({ value, onChange }: ClassScheduleInp
       <Label className="text-sm">수업 일정</Label>
       
       <div className="space-y-2">
-        {entries.map((entry, index) => (
-          <div key={index} className="flex items-center gap-1 p-2 bg-muted/30 rounded-lg">
-            {/* Day Selection */}
-            <Select 
-              value={entry.day} 
-              onValueChange={(val) => updateEntry(index, "day", val)}
-            >
-              <SelectTrigger className="w-14 h-9 px-2 text-sm shrink-0">
-                <SelectValue placeholder="요일" />
-              </SelectTrigger>
-              <SelectContent>
-                {DAYS.map((day) => (
-                  <SelectItem 
-                    key={day} 
-                    value={day}
-                    disabled={selectedDays.includes(day) && entry.day !== day}
-                  >
-                    {day}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {entries.map((entry, index) => {
+          const startTimeParts = splitTime(entry.startTime);
+          const endTimeParts = splitTime(entry.endTime);
+          
+          return (
+            <div key={index} className="flex items-center gap-1 p-2 bg-muted/30 rounded-lg flex-wrap">
+              {/* Day Selection */}
+              <Select 
+                value={entry.day} 
+                onValueChange={(val) => updateEntry(index, "day", val)}
+              >
+                <SelectTrigger className="w-[60px] h-9 px-2 text-sm shrink-0">
+                  <SelectValue placeholder="요일" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAYS.map((day) => (
+                    <SelectItem 
+                      key={day} 
+                      value={day}
+                      disabled={selectedDays.includes(day) && entry.day !== day}
+                    >
+                      {day}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {/* Start Time */}
-            <Select 
-              value={entry.startTime} 
-              onValueChange={(val) => updateEntry(index, "startTime", val)}
-            >
-              <SelectTrigger className="w-[72px] h-9 px-2 text-xs shrink-0">
-                <SelectValue placeholder="시작" />
-              </SelectTrigger>
-              <SelectContent className="max-h-48">
-                {TIME_OPTIONS.map((time) => (
-                  <SelectItem key={time} value={time} className="text-xs">
-                    {time}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {/* Start Time - Hour */}
+              <Select 
+                value={startTimeParts.hour} 
+                onValueChange={(val) => updateEntry(index, "startTime", combineTime(val, startTimeParts.minute || "00"))}
+              >
+                <SelectTrigger className="w-[56px] h-9 px-2 text-xs shrink-0">
+                  <SelectValue placeholder="시" />
+                </SelectTrigger>
+                <SelectContent className="max-h-48">
+                  {HOUR_OPTIONS.map((hour) => (
+                    <SelectItem key={hour} value={hour} className="text-xs">
+                      {hour}시
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <span className="text-muted-foreground text-xs">~</span>
+              {/* Start Time - Minute */}
+              <Select 
+                value={startTimeParts.minute} 
+                onValueChange={(val) => updateEntry(index, "startTime", combineTime(startTimeParts.hour || "00", val))}
+              >
+                <SelectTrigger className="w-[56px] h-9 px-2 text-xs shrink-0">
+                  <SelectValue placeholder="분" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MINUTE_OPTIONS.map((minute) => (
+                    <SelectItem key={minute} value={minute} className="text-xs">
+                      {minute}분
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {/* End Time */}
-            <Select 
-              value={entry.endTime} 
-              onValueChange={(val) => updateEntry(index, "endTime", val)}
-            >
-              <SelectTrigger className="w-[72px] h-9 px-2 text-xs shrink-0">
-                <SelectValue placeholder="종료" />
-              </SelectTrigger>
-              <SelectContent className="max-h-48">
-                {TIME_OPTIONS.map((time) => (
-                  <SelectItem key={time} value={time} className="text-xs">
-                    {time}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <span className="text-muted-foreground text-xs">~</span>
 
-            {/* Remove Button */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={() => removeEntry(index)}
-            >
-              <X className="h-4 w-4 text-muted-foreground" />
-            </Button>
-          </div>
-        ))}
+              {/* End Time - Hour */}
+              <Select 
+                value={endTimeParts.hour} 
+                onValueChange={(val) => updateEntry(index, "endTime", combineTime(val, endTimeParts.minute || "00"))}
+              >
+                <SelectTrigger className="w-[56px] h-9 px-2 text-xs shrink-0">
+                  <SelectValue placeholder="시" />
+                </SelectTrigger>
+                <SelectContent className="max-h-48">
+                  {HOUR_OPTIONS.map((hour) => (
+                    <SelectItem key={hour} value={hour} className="text-xs">
+                      {hour}시
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* End Time - Minute */}
+              <Select 
+                value={endTimeParts.minute} 
+                onValueChange={(val) => updateEntry(index, "endTime", combineTime(endTimeParts.hour || "00", val))}
+              >
+                <SelectTrigger className="w-[56px] h-9 px-2 text-xs shrink-0">
+                  <SelectValue placeholder="분" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MINUTE_OPTIONS.map((minute) => (
+                    <SelectItem key={minute} value={minute} className="text-xs">
+                      {minute}분
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Remove Button */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => removeEntry(index)}
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </div>
+          );
+        })}
       </div>
 
       {/* Add Button */}
