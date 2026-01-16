@@ -169,7 +169,7 @@ export default function ClassScheduleInput({ value, onChange }: ClassScheduleInp
                 value={startTimeParts.hour} 
                 onValueChange={(val) => updateEntry(index, "startTime", combineTime(val, startTimeParts.minute || "00"))}
               >
-                <SelectTrigger className="w-[48px] h-8 px-1 text-xs shrink-0">
+                <SelectTrigger className="w-[54px] h-8 px-1.5 text-xs shrink-0">
                   <SelectValue placeholder="시" />
                 </SelectTrigger>
                 <SelectContent className="max-h-48">
@@ -186,7 +186,7 @@ export default function ClassScheduleInput({ value, onChange }: ClassScheduleInp
                 value={startTimeParts.minute} 
                 onValueChange={(val) => updateEntry(index, "startTime", combineTime(startTimeParts.hour || "00", val))}
               >
-                <SelectTrigger className="w-[48px] h-8 px-1 text-xs shrink-0">
+                <SelectTrigger className="w-[54px] h-8 px-1.5 text-xs shrink-0">
                   <SelectValue placeholder="분" />
                 </SelectTrigger>
                 <SelectContent>
@@ -205,7 +205,7 @@ export default function ClassScheduleInput({ value, onChange }: ClassScheduleInp
                 value={endTimeParts.hour} 
                 onValueChange={(val) => updateEntry(index, "endTime", combineTime(val, endTimeParts.minute || "00"))}
               >
-                <SelectTrigger className="w-[48px] h-8 px-1 text-xs shrink-0">
+                <SelectTrigger className="w-[54px] h-8 px-1.5 text-xs shrink-0">
                   <SelectValue placeholder="시" />
                 </SelectTrigger>
                 <SelectContent className="max-h-48">
@@ -222,7 +222,7 @@ export default function ClassScheduleInput({ value, onChange }: ClassScheduleInp
                 value={endTimeParts.minute} 
                 onValueChange={(val) => updateEntry(index, "endTime", combineTime(endTimeParts.hour || "00", val))}
               >
-                <SelectTrigger className="w-[48px] h-8 px-1 text-xs shrink-0">
+                <SelectTrigger className="w-[54px] h-8 px-1.5 text-xs shrink-0">
                   <SelectValue placeholder="분" />
                 </SelectTrigger>
                 <SelectContent>
