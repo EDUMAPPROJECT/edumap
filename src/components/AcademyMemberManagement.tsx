@@ -36,7 +36,7 @@ interface MemberWithProfile {
 }
 
 const AcademyMemberManagement = ({ academyId }: AcademyMemberManagementProps) => {
-  const { isOwner, generateJoinCode, primaryAcademy, refetch } = useAcademyMembership();
+  const { isOwner, generateJoinCode, primaryAcademy, refetch, memberships } = useAcademyMembership();
   const [members, setMembers] = useState<MemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -48,6 +48,11 @@ const AcademyMemberManagement = ({ academyId }: AcademyMemberManagementProps) =>
   const [saving, setSaving] = useState(false);
 
   const isAcademyOwner = isOwner(academyId);
+  
+  // Check if user is an approved member of this academy (not just owner)
+  const isApprovedMember = memberships.some(
+    m => m.membership.academy_id === academyId && m.membership.status === 'approved'
+  );
 
   useEffect(() => {
     fetchMembers();
@@ -222,7 +227,8 @@ const AcademyMemberManagement = ({ academyId }: AcademyMemberManagementProps) =>
     }
   };
 
-  if (!isAcademyOwner) {
+  // If not an approved member, don't show anything
+  if (!isApprovedMember) {
     return null;
   }
 
@@ -231,45 +237,47 @@ const AcademyMemberManagement = ({ academyId }: AcademyMemberManagementProps) =>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Users className="w-4 h-4 text-primary" />
-          관리자 관리
+          {isAcademyOwner ? '관리자 관리' : '관리자 목록'}
         </CardTitle>
         <CardDescription>
-          학원 관리자를 초대하고 권한을 설정하세요
+          {isAcademyOwner ? '학원 관리자를 초대하고 권한을 설정하세요' : '학원에 등록된 관리자 목록입니다'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Join Code Section */}
-        <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">참여 코드</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateCode}
-              disabled={generating}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
-              {joinCode ? '코드 재생성' : '코드 생성'}
-            </Button>
-          </div>
-          {joinCode ? (
-            <div className="flex items-center gap-2">
-              <div className="flex-1 font-mono text-2xl tracking-widest text-center py-3 bg-background rounded-lg border">
-                {joinCode}
-              </div>
-              <Button variant="outline" size="icon" onClick={copyCode}>
-                <Copy className="w-4 h-4" />
+        {/* Join Code Section - Only show to owner */}
+        {isAcademyOwner && (
+          <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">참여 코드</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateCode}
+                disabled={generating}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
+                {joinCode ? '코드 재생성' : '코드 생성'}
               </Button>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-3">
-              참여 코드를 생성하면 다른 관리자가 이 학원에 참여할 수 있습니다
-            </p>
-          )}
-        </div>
+            {joinCode ? (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 font-mono text-2xl tracking-widest text-center py-3 bg-background rounded-lg border">
+                  {joinCode}
+                </div>
+                <Button variant="outline" size="icon" onClick={copyCode}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-3">
+                참여 코드를 생성하면 다른 관리자가 이 학원에 참여할 수 있습니다
+              </p>
+            )}
+          </div>
+        )}
 
-        {/* Pending Members List */}
-        {members.filter(m => m.status === 'pending').length > 0 && (
+        {/* Pending Members List - Only show to owner */}
+        {isAcademyOwner && members.filter(m => m.status === 'pending').length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-500" />
@@ -360,7 +368,8 @@ const AcademyMemberManagement = ({ academyId }: AcademyMemberManagementProps) =>
                     <Badge variant={member.role === 'owner' ? 'default' : 'secondary'}>
                       {member.role === 'owner' ? '원장' : '관리자'}
                     </Badge>
-                    {member.role !== 'owner' && (
+                    {/* Only show management buttons to owner */}
+                    {isAcademyOwner && member.role !== 'owner' && (
                       <>
                         <Button
                           variant="ghost"
