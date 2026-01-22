@@ -477,22 +477,22 @@ const ChildConnectionPage = () => {
               코드는 24시간 후 만료됩니다.
             </p>
           </div>
-          <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:justify-center">
+          <div className="flex flex-col gap-2 mt-4">
             <Button 
-              className="w-full"
+              className="w-full justify-center"
               onClick={() => currentCode && handleCopyCode(currentCode)}
             >
-              <Copy className="w-4 h-4 mr-2" />
+              <Copy className="w-4 h-4" />
               코드 복사
             </Button>
             <Button 
               variant="outline" 
-              className="w-full"
+              className="w-full justify-center"
               onClick={() => setShowCodeDialog(false)}
             >
               닫기
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
