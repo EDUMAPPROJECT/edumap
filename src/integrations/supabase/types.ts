@@ -25,8 +25,10 @@ export type Database = {
           is_profile_locked: boolean | null
           join_code: string | null
           join_code_created_at: string | null
+          latitude: number | null
           locked_at: string | null
           locked_by: string | null
+          longitude: number | null
           name: string
           owner_id: string | null
           profile_image: string | null
@@ -47,8 +49,10 @@ export type Database = {
           is_profile_locked?: boolean | null
           join_code?: string | null
           join_code_created_at?: string | null
+          latitude?: number | null
           locked_at?: string | null
           locked_by?: string | null
+          longitude?: number | null
           name: string
           owner_id?: string | null
           profile_image?: string | null
@@ -69,8 +73,10 @@ export type Database = {
           is_profile_locked?: boolean | null
           join_code?: string | null
           join_code_created_at?: string | null
+          latitude?: number | null
           locked_at?: string | null
           locked_by?: string | null
+          longitude?: number | null
           name?: string
           owner_id?: string | null
           profile_image?: string | null
