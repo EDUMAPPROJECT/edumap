@@ -11,6 +11,12 @@ import AcademyMap from "@/components/AcademyMap";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Search, MapPin, Filter, Heart, Calendar, Clock, Users, Building2, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
@@ -54,6 +60,7 @@ const ExplorePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState(initialTab);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [searchResultDrawerOpen, setSearchResultDrawerOpen] = useState(false);
   const aboveMapRef = useRef<HTMLDivElement>(null);
   const [aboveMapHeight, setAboveMapHeight] = useState(0);
 
@@ -272,7 +279,22 @@ const ExplorePage = () => {
                   type="text"
                   placeholder={activeTab === "academies" ? "학원명, 과목으로 검색" : "설명회 제목으로 검색"}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (activeTab === "academies" && mapExpanded) {
+                      setSearchResultDrawerOpen(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      activeTab === "academies" &&
+                      mapExpanded
+                    ) {
+                      e.preventDefault();
+                      setSearchResultDrawerOpen(true);
+                    }
+                  }}
                   className="w-full h-10 pl-10 pr-4 rounded-xl bg-muted border-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -297,7 +319,10 @@ const ExplorePage = () => {
                 variant="secondary"
                 size="icon"
                 className="absolute top-3 right-3 z-[60] rounded-full shadow-md"
-                onClick={() => setMapExpanded(false)}
+                onClick={() => {
+                  setMapExpanded(false);
+                  setSearchResultDrawerOpen(false);
+                }}
                 aria-label="지도 접기"
               >
                 <X className="w-5 h-5" />
@@ -307,6 +332,111 @@ const ExplorePage = () => {
         ) : (
           <AcademyMap onMapClick={() => setMapExpanded(true)} />
         ))}
+
+      {/* 검색 결과 Drawer (확대된 지도에서만) */}
+      {activeTab === "academies" && mapExpanded && (
+        <Drawer
+          open={searchResultDrawerOpen}
+          onOpenChange={(open) => {
+            if (!open) setSearchResultDrawerOpen(false);
+          }}
+        >
+          <DrawerContent
+            className="max-w-lg mx-auto max-h-[85vh] flex flex-col"
+            overlayClassName="bg-transparent pointer-events-none"
+            bottomOffset={64}
+          >
+            <DrawerHeader>
+              <DrawerTitle className="text-center">검색 결과</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-8 flex-1 overflow-y-auto min-h-0">
+              <p className="text-sm text-muted-foreground mb-4">
+                총 <span className="text-primary font-semibold">{filteredAcademies.length}개</span> 학원
+              </p>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : filteredAcademies.length === 0 ? (
+                <div className="text-center py-12">
+                  <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">검색 결과가 없습니다</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredAcademies.map((academy) => (
+                    <div
+                      key={academy.id}
+                      onClick={() => {
+                        setSearchResultDrawerOpen(false);
+                        navigate(`${prefix}/academy/${academy.id}`);
+                      }}
+                      className="bg-card border border-border rounded-xl p-4 shadow-card hover:shadow-soft transition-all duration-200 cursor-pointer"
+                    >
+                      <div className="flex gap-4">
+                        <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center shrink-0 overflow-hidden">
+                          {academy.profile_image ? (
+                            <img
+                              src={academy.profile_image}
+                              alt={academy.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xl font-bold text-primary">
+                              {academy.name.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground truncate">{academy.name}</h4>
+                              <p className="text-sm text-muted-foreground">{academy.subject} 전문</p>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleBookmark(academy.id);
+                              }}
+                              className="p-1.5 hover:bg-muted rounded-full transition-colors shrink-0 ml-2"
+                            >
+                              <Heart
+                                className={`w-5 h-5 transition-colors ${
+                                  bookmarkedIds.has(academy.id)
+                                    ? "fill-red-500 text-red-500"
+                                    : "text-muted-foreground hover:text-red-500"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            {academy.is_mou && (
+                              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                                MOU
+                              </Badge>
+                            )}
+                            {academy.tags &&
+                              academy.tags.slice(0, 2).map((tag) => (
+                                <Badge key={tag} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                          </div>
+                          {academy.address && (
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                              {academy.address}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* Filter Tags */}
       {!(activeTab === "academies" && mapExpanded) && (
