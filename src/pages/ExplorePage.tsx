@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegion } from "@/contexts/RegionContext";
@@ -11,7 +11,7 @@ import AcademyMap from "@/components/AcademyMap";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, MapPin, Filter, Heart, Calendar, Clock, Users, Building2 } from "lucide-react";
+import { Search, MapPin, Filter, Heart, Calendar, Clock, Users, Building2, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -53,6 +53,29 @@ const ExplorePage = () => {
   const [selectedGrade, setSelectedGrade] = useState<string>("전체");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [mapExpanded, setMapExpanded] = useState(false);
+  const aboveMapRef = useRef<HTMLDivElement>(null);
+  const [aboveMapHeight, setAboveMapHeight] = useState(0);
+
+  useEffect(() => {
+    const el = aboveMapRef.current;
+    if (!el) return;
+    const update = () => setAboveMapHeight(el.getBoundingClientRect().height);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (mapExpanded) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [mapExpanded]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -209,60 +232,84 @@ const ExplorePage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="sticky top-0 bg-card/80 backdrop-blur-lg border-b border-border z-40">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Logo size="sm" showText={false} />
-            <GlobalRegionSelector />
-          </div>
-          <AdminHeader />
-        </div>
-      </header>
-
-      {/* Toggle Tabs */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 py-3">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-2">
-              <TabsTrigger value="academies" className="gap-1">
-                <Building2 className="w-4 h-4" />
-                학원 찾기
-              </TabsTrigger>
-              <TabsTrigger value="seminars" className="gap-1">
-                <Calendar className="w-4 h-4" />
-                설명회 찾기
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder={activeTab === "academies" ? "학원명, 과목으로 검색" : "설명회 제목으로 검색"}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-10 pr-4 rounded-xl bg-muted border-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+      <div ref={aboveMapRef}>
+        {/* Header */}
+        <header className="sticky top-0 bg-card/80 backdrop-blur-lg border-b border-border z-40">
+          <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Logo size="sm" showText={false} />
+              <GlobalRegionSelector />
             </div>
-            <Button variant="outline" size="icon" className="shrink-0">
-              <Filter className="w-4 h-4" />
-            </Button>
+            <AdminHeader />
+          </div>
+        </header>
+
+        {/* Toggle Tabs */}
+        <div className="bg-card border-b border-border">
+          <div className="max-w-lg mx-auto px-4 py-3">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="w-full grid grid-cols-2">
+                <TabsTrigger value="academies" className="gap-1">
+                  <Building2 className="w-4 h-4" />
+                  학원 찾기
+                </TabsTrigger>
+                <TabsTrigger value="seminars" className="gap-1">
+                  <Calendar className="w-4 h-4" />
+                  설명회 찾기
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="bg-card border-b border-border">
+          <div className="max-w-lg mx-auto px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder={activeTab === "academies" ? "학원명, 과목으로 검색" : "설명회 제목으로 검색"}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 pl-10 pr-4 rounded-xl bg-muted border-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <Button variant="outline" size="icon" className="shrink-0">
+                <Filter className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Map Area (Academies only) */}
-      {activeTab === "academies" && <AcademyMap />}
+      {activeTab === "academies" &&
+        (mapExpanded ? (
+          <div
+            className="fixed left-1/2 -translate-x-1/2 bottom-0 w-full max-w-lg z-50 bg-background"
+            style={{ top: aboveMapHeight }}
+          >
+            <div className="relative w-full h-full">
+              <AcademyMap expanded />
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute top-3 right-3 z-[60] rounded-full shadow-md"
+                onClick={() => setMapExpanded(false)}
+                aria-label="지도 접기"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <AcademyMap onMapClick={() => setMapExpanded(true)} />
+        ))}
 
       {/* Filter Tags */}
+      {!(activeTab === "academies" && mapExpanded) && (
       <div className="max-w-lg mx-auto px-4 py-3 border-b border-border bg-card">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-2">
           {subjects.map((subject) => (
@@ -293,8 +340,10 @@ const ExplorePage = () => {
           </div>
         )}
       </div>
+      )}
 
       {/* Results */}
+      {!(activeTab === "academies" && mapExpanded) && (
       <main className="max-w-lg mx-auto px-4 py-4">
         {activeTab === "academies" ? (
           <>
@@ -444,6 +493,7 @@ const ExplorePage = () => {
           </>
         )}
       </main>
+      )}
 
       <BottomNavigation />
     </div>

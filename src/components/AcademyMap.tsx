@@ -13,10 +13,17 @@ interface Academy {
   longitude: number | null;
 }
 
-const AcademyMap = () => {
+interface AcademyMapProps {
+  onMapClick?: () => void;
+  expanded?: boolean;
+}
+
+const AcademyMap = ({ onMapClick, expanded = false }: AcademyMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const onMapClickRef = useRef(onMapClick);
+  onMapClickRef.current = onMapClick;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -112,6 +119,13 @@ const AcademyMap = () => {
           }
         }
 
+        // 지도(마커 제외) 클릭 시 콜백
+        if (onMapClickRef.current) {
+          window.naver.maps.Event.addListener(map, "click", () => {
+            onMapClickRef.current?.();
+          });
+        }
+
         setIsLoading(false);
       } catch (err: any) {
         setError(err?.message || "지도를 불러오는 중 오류가 발생했습니다.");
@@ -153,8 +167,14 @@ const AcademyMap = () => {
   }
 
   return (
-    <div className="max-w-lg mx-auto border-b border-border relative z-0">
-      <div className="relative">
+    <div
+      className={
+        expanded
+          ? "absolute inset-0 w-full h-full min-h-0"
+          : "max-w-lg mx-auto border-b border-border relative z-0"
+      }
+    >
+      <div className={expanded ? "relative w-full h-full" : "relative"}>
         {isLoading && (
           <div className="absolute inset-0 bg-secondary/50 flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-2">
@@ -165,8 +185,8 @@ const AcademyMap = () => {
         )}
         <div
           ref={mapRef}
-          className="w-full h-64 relative z-0"
-          style={{ minHeight: "256px" }}
+          className={`w-full relative z-0 ${expanded ? "h-full min-h-0" : "h-64"}`}
+          style={expanded ? {} : { minHeight: "256px" }}
         />
       </div>
     </div>
