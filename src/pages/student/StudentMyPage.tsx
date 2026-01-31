@@ -15,7 +15,8 @@ import {
   BookOpen,
   Users,
   FileText,
-  Sparkles
+  Sparkles,
+  User
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -162,6 +163,11 @@ const StudentMyPage = () => {
         <div className="bg-card rounded-2xl shadow-card overflow-hidden mb-6">
           {user && (
             <>
+              <MenuItemButton 
+                icon={User} 
+                label="내 정보" 
+                onClick={() => navigate("/s/my/profile")} 
+              />
               <MenuItemButton 
                 icon={BookOpen} 
                 label="MY CLASS" 
