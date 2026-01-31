@@ -403,7 +403,7 @@ export type Database = {
             foreignKeyName: "class_enrollments_child_id_fkey"
             columns: ["child_id"]
             isOneToOne: false
-            referencedRelation: "children"
+            referencedRelation: "student_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -698,7 +698,7 @@ export type Database = {
             foreignKeyName: "manual_schedules_child_id_fkey"
             columns: ["child_id"]
             isOneToOne: false
-            referencedRelation: "children"
+            referencedRelation: "student_profiles"
             referencedColumns: ["id"]
           },
         ]
